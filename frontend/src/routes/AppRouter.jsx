@@ -17,6 +17,9 @@ import AdminDashboard from "../pages/admin/AdminDashboard";
 import Users from "../pages/admin/Users";
 import Assessments from "../pages/admin/Assessments";
 import Analytics from "../pages/admin/Analytics";
+import ProtectedRoute from "./ProtectedRoute";
+
+import AdminRoute from "./AdminRoute";
 
 function AppRouter() {
   return (
@@ -25,22 +28,26 @@ function AppRouter() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
         </Route>
-        
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route element={<UserLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/assessment" element={<Assessment />} />
-          <Route path="/result" element={<Result />} />
-          <Route path="/history" element={<History />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<UserLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/assessment" element={<Assessment />} />
+            <Route path="/result" element={<Result />} />
+            <Route path="/history" element={<History />} />
+          </Route>
         </Route>
 
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<Users />} />
-          <Route path="/admin/assessments" element={<Assessments />} />
-          <Route path="/admin/analytics" element={<Analytics />} />
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/assessments" element={<Assessments />} />
+            <Route path="/admin/analytics" element={<Analytics />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

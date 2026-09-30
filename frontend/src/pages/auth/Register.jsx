@@ -1,6 +1,64 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 function Register() {
+  const navigate = useNavigate()
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  })
+
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed')
+      }
+
+      navigate('/login')
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="auth-page">
       <div className="auth-container">
@@ -19,7 +77,7 @@ function Register() {
           </p>
         </div>
 
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="name">Name</label>
 
@@ -29,6 +87,9 @@ function Register() {
               type="text"
               placeholder="Your name"
               autoComplete="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
             />
           </div>
 
@@ -41,6 +102,9 @@ function Register() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
             />
           </div>
 
@@ -53,6 +117,9 @@ function Register() {
               type="password"
               placeholder="Create a password"
               autoComplete="new-password"
+              value={formData.password}
+              onChange={handleChange}
+              required
             />
           </div>
 
@@ -65,11 +132,24 @@ function Register() {
               type="password"
               placeholder="Repeat your password"
               autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
             />
           </div>
 
-          <button type="submit" className="button button-primary auth-button">
-            Create account
+          {error && (
+            <p className="auth-error">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="button button-primary auth-button"
+            disabled={loading}
+          >
+            {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 

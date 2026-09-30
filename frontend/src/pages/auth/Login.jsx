@@ -1,6 +1,55 @@
-import { Link } from 'react-router-dom'
-
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      login(data.token, data.user);
+
+      navigate("/dashboard");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="auth-page">
       <div className="auth-container">
@@ -14,12 +63,10 @@ function Login() {
 
           <h1>Sign in to your account</h1>
 
-          <p>
-            Continue where you left off and take the next step.
-          </p>
+          <p>Continue where you left off and take the next step.</p>
         </div>
 
-        <form className="auth-form">
+        <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="email">Email address</label>
 
@@ -29,6 +76,9 @@ function Login() {
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
             />
           </div>
 
@@ -45,21 +95,29 @@ function Login() {
               type="password"
               placeholder="Enter your password"
               autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
+              required
             />
           </div>
 
-          <button type="submit" className="button button-primary auth-button">
-            Sign in
+          {error && <p className="auth-error">{error}</p>}
+
+          <button
+            type="submit"
+            className="button button-primary auth-button"
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
         <p className="auth-footer">
-          Don't have an account?{' '}
-          <Link to="/register">Create one</Link>
+          Don't have an account? <Link to="/register">Create one</Link>
         </p>
       </div>
     </main>
-  )
+  );
 }
 
-export default Login
+export default Login;
