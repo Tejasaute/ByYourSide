@@ -37,6 +37,7 @@ function AppRouter() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/assessment" element={<Assessment />} />
             <Route path="/result" element={<Result />} />
+            <Route path="/result/:id" element={<Result />} />
             <Route path="/history" element={<History />} />
           </Route>
         </Route>

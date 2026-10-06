@@ -1,13 +1,55 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+ import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 function Assessment() {
   const [text, setText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const { token } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    console.log('Assessment text:', text)
+    if (!text.trim()) return
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await fetch('http://localhost:5000/api/assessment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: text.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Unable to process assessment')
+      }
+
+      sessionStorage.setItem(
+        'assessmentResult',
+        JSON.stringify({
+          text: text.trim(),
+          prediction: data.prediction,
+        })
+      )
+
+      navigate('/result')
+    } catch (error) {
+      setError(error.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,11 +81,13 @@ function Assessment() {
               placeholder="For example: They have become more isolated recently and seem less interested in things they usually enjoy..."
               rows="8"
               required
+              disabled={loading}
             />
           </div>
 
           <div className="assessment-note">
             <span>ⓘ</span>
+
             <p>
               Share observations in your own words. ByYourSide provides
               awareness and supportive guidance based on the information
@@ -51,17 +95,26 @@ function Assessment() {
             </p>
           </div>
 
+          {error && (
+            <p className="assessment-error">
+              {error}
+            </p>
+          )}
+
           <div className="assessment-actions">
-            <Link to="/dashboard" className="button button-secondary">
+            <Link
+              to="/dashboard"
+              className="button button-secondary"
+            >
               Back
             </Link>
 
             <button
               type="submit"
               className="button button-primary"
-              disabled={!text.trim()}
+              disabled={!text.trim() || loading}
             >
-              Continue
+              {loading ? 'Processing...' : 'Continue'}
             </button>
           </div>
         </form>

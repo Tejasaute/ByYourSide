@@ -42,7 +42,11 @@ function Login() {
 
       login(data.token, data.user);
 
-      navigate("/dashboard");
+      if (data.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       setError(error.message);
     } finally {
